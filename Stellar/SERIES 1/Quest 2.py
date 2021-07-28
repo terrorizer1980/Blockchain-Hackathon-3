@@ -1,7 +1,21 @@
-from Stellar.util.functions import create_dummy_account, pay_account
-from Stellar.util.store_keys import SQKeypair
-from decimal import Decimal
+import stellar_sdk
+import requests
 
-if __name__ == '__main__':
-    dummy = create_dummy_account()
-    pay_account(SQKeypair, dummy, Decimal(10))
+server = stellar_sdk.Server()
+
+SQKeypair = stellar_sdk.Keypair.from_secret(input("Secret: "))
+account = server.load_account(SQKeypair.public_key)
+
+dummy = stellar_sdk.Keypair.random()
+requests.get("https://friendbot.stellar.org", params={"addr": dummy.public_key})
+
+transaction = stellar_sdk.TransactionBuilder(
+        source_account=account
+    ).append_payment_op(
+        destination=dummy.public_key,
+        amount="10"
+    ).build()
+transaction.sign(SQKeypair)
+
+resp = server.submit_transaction(transaction)
+print(resp)
