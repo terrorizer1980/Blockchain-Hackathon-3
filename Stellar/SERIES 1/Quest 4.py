@@ -1,5 +1,4 @@
 import stellar_sdk
-import requests
 
 server = stellar_sdk.Server()
 
