@@ -3,31 +3,30 @@ import requests
 
 server = stellar_sdk.Server()
 
-
-def get_asset(code):
-    try:
-        issuer = server.assets().for_code(code).call()["_embedded"]["records"][0]["asset_issuer"]
-        return stellar_sdk.Asset(code, issuer)
-    except (IndexError, KeyError):
-        return None
-
-
 SQKeypair = stellar_sdk.Keypair.from_secret(input("Secret: "))
 account = server.load_account(SQKeypair.public_key)
 
 dummy = stellar_sdk.Keypair.random()
 requests.get("https://friendbot.stellar.org", params={"addr": dummy.public_key})
+dummy_account = server.load_account(dummy.public_key)
 
-asset = get_asset(input("Asset code: "))
-XLM = stellar_sdk.Asset.native()
-p = stellar_sdk.Price(10, 10)
+asset_code = input("Asset code: ")
+asset = stellar_sdk.Asset(asset_code, dummy.public_key)
 
 transaction = stellar_sdk.TransactionBuilder(
     source_account=account
-).append_create_passive_sell_offer_op(
-    asset.code, asset.issuer, XLM.code, XLM.issuer, "10", "10"
+).append_change_trust_op(
+    asset_code=asset.code,
+    asset_issuer=asset.issuer
+).append_payment_op(
+    source=asset.issuer,
+    destination=SQKeypair.public_key,
+    amount="1000",
+    asset_code=asset.code,
+    asset_issuer=asset.issuer
 ).build()
 transaction.sign(SQKeypair)
+transaction.sign(dummy)
 
 resp = server.submit_transaction(transaction)
 print(resp)

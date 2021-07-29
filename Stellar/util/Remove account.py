@@ -7,6 +7,8 @@ server = stellar_sdk.Server()
 
 SQKeypair = stellar_sdk.Keypair.from_secret(input("Secret: "))
 
+account = None
+
 try:
     account = server.load_account(SQKeypair.public_key)
 except NotFoundError:
