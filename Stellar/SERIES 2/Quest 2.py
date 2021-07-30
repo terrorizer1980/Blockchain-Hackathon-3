@@ -14,8 +14,9 @@ asset_code = input("Asset code: ")
 asset = stellar_sdk.Asset(asset_code, dummy.public_key)
 
 transaction = stellar_sdk.TransactionBuilder(
-    source_account=account
+    source_account=dummy_account
 ).append_change_trust_op(
+    source=SQKeypair.public_key,
     asset_code=asset.code,
     asset_issuer=asset.issuer
 ).append_payment_op(
